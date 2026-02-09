@@ -66,7 +66,18 @@ export default function DashboardClient({ role }) {
     if (newTask.emailSent) {
       showNotif("📧 Zadanie dodane. Email wysłany.");
     } else {
-      showNotif("Zadanie dodane. Powiadomienie email nie zostało wysłane — sprawdź EMAILLABS_* w Vercel.");
+      const reason = newTask.emailError;
+      const msg =
+        reason === "no_api_keys"
+          ? "Zadanie dodane. Email: dodaj EMAILLABS_APP_KEY i EMAILLABS_SECRET_KEY w Vercel (Settings → Environment Variables)."
+          : reason === "no_smtp_account"
+            ? "Zadanie dodane. Email: dodaj EMAILLABS_SMTP_ACCOUNT w Vercel (np. 1.biostima.smtp)."
+            : reason === "api_error"
+              ? "Zadanie dodane. Email: błąd EmailLabs — sprawdź klucze API i konto SMTP w panelu EmailLabs."
+              : reason === "network_error"
+                ? "Zadanie dodane. Email: błąd połączenia z EmailLabs."
+                : "Zadanie dodane. Powiadomienie email nie wysłane — ustaw EMAILLABS_APP_KEY, EMAILLABS_SECRET_KEY, EMAILLABS_SMTP_ACCOUNT w Vercel.";
+      showNotif(msg);
     }
   };
 
