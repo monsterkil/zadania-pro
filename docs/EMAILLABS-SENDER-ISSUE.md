@@ -1,6 +1,10 @@
 # Opis problemu: „Sender address is not valid” w EmailLabs API
 
-## Co się dzieje (krótko)
+**Rozwiązanie (2025-02):** API EmailLabs `new_sendmail` wymaga **`application/x-www-form-urlencoded`**, nie JSON. Wysłanie body jako JSON powodowało, że serwer nie parsował pól (m.in. `from`) i zwracał „Sender address is not valid”. W kodzie (`lib/email.js`) zmieniono na `Content-Type: application/x-www-form-urlencoded` i body jako `URLSearchParams`.
+
+---
+
+## Co się działo (krótko)
 
 Aplikacja wysyła maile przez API EmailLabs (`new_sendmail`). API zwraca **HTTP 500** z komunikatem **„Sender address is not valid”**, mimo że:
 - używany adres nadawcy (**sklep@biostima.pl**) działa w **innej aplikacji** z tym samym kontem EmailLabs,

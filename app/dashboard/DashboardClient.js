@@ -7,11 +7,49 @@ import TaskDetail from "@/components/TaskDetail";
 import NewTaskModal from "@/components/NewTaskModal";
 import Notification from "@/components/Notification";
 
-const STATUS_CONFIG = {
-  new: { label: "Nowe", color: "#f59e0b" },
-  in_progress: { label: "W realizacji", color: "#3b82f6" },
-  done: { label: "Gotowe", color: "#10b981" },
-};
+// Kolumny kanbanu: Nowe → Wycenione → Wycena zaakceptowana → W realizacji → Gotowe
+// "quoted" i "quote_accepted" to widoki na status "new" (bez zmiany w bazie)
+const COLUMNS = [
+  {
+    id: "new",
+    label: "Nowe",
+    color: "#f59e0b",
+    dropStatus: "new",
+    filter: (t) =>
+      t.status === "new" &&
+      t.quoteStatus !== "accepted" &&
+      !(t.requiresQuote && t.quoteAmount && t.quoteStatus === "pending"),
+  },
+  {
+    id: "quoted",
+    label: "Wycenione",
+    color: "#d97706",
+    dropStatus: "new",
+    filter: (t) =>
+      t.status === "new" && t.requiresQuote && t.quoteAmount && t.quoteStatus === "pending",
+  },
+  {
+    id: "quote_accepted",
+    label: "Wycena zaakceptowana",
+    color: "#059669",
+    dropStatus: "new",
+    filter: (t) => t.status === "new" && t.quoteStatus === "accepted",
+  },
+  {
+    id: "in_progress",
+    label: "W realizacji",
+    color: "#3b82f6",
+    dropStatus: "in_progress",
+    filter: (t) => t.status === "in_progress",
+  },
+  {
+    id: "done",
+    label: "Gotowe",
+    color: "#10b981",
+    dropStatus: "done",
+    filter: (t) => t.status === "done",
+  },
+];
 
 const ROLE_CONFIG = {
   admin: { label: "Admin 1", color: "#3b82f6" },
@@ -100,6 +138,7 @@ export default function DashboardClient({ role }) {
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
 
+    // Tylko przeniesienie do "W realizacji" lub "Gotowe" wymaga requestu; "new" w obrębie Nowe/Wycenione/Wycena zaakceptowana = brak zmiany
     if (
       newStatus === "in_progress" &&
       task.requiresQuote &&
@@ -147,11 +186,7 @@ export default function DashboardClient({ role }) {
 
   const canDrag = role === "admin" || role === "admin2" || role === "collaborator";
 
-  const grouped = {
-    new: tasks.filter((t) => t.status === "new"),
-    in_progress: tasks.filter((t) => t.status === "in_progress"),
-    done: tasks.filter((t) => t.status === "done"),
-  };
+  const grouped = Object.fromEntries(COLUMNS.map((col) => [col.id, tasks.filter(col.filter)]));
 
   const totalAccepted = tasks
     .filter((t) => t.requiresQuote && t.quoteStatus === "accepted")
@@ -195,11 +230,11 @@ export default function DashboardClient({ role }) {
 
       {/* Summary Bar */}
       <div className="flex gap-3 px-4 sm:px-6 py-4 overflow-x-auto">
-        {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
-          <div key={key} className="flex items-center gap-2 px-3 py-2 rounded-lg min-w-fit"
-            style={{ background: `${cfg.color}08`, border: `1px solid ${cfg.color}20` }}>
-            <span className="text-lg font-bold" style={{ color: cfg.color }}>{grouped[key].length}</span>
-            <span className="text-xs text-slate-500">{cfg.label}</span>
+        {COLUMNS.map((col) => (
+          <div key={col.id} className="flex items-center gap-2 px-3 py-2 rounded-lg min-w-fit"
+            style={{ background: `${col.color}08`, border: `1px solid ${col.color}20` }}>
+            <span className="text-lg font-bold" style={{ color: col.color }}>{grouped[col.id].length}</span>
+            <span className="text-xs text-slate-500">{col.label}</span>
           </div>
         ))}
         <div className="flex-1" />
@@ -214,38 +249,38 @@ export default function DashboardClient({ role }) {
 
       {/* Kanban */}
       <div className="flex gap-4 px-4 sm:px-6 pb-24 overflow-x-auto min-h-[calc(100vh-140px)]">
-        {Object.entries(STATUS_CONFIG).map(([status, cfg]) => (
+        {COLUMNS.map((col) => (
           <div
-            key={status}
-            className="flex-1 min-w-[280px] flex flex-col rounded-xl transition-colors"
+            key={col.id}
+            className="flex-1 min-w-[240px] flex flex-col rounded-xl transition-colors"
             style={{
-              background: dragOverColumn === status ? "rgba(255,255,255,0.02)" : "transparent",
-              padding: dragOverColumn === status ? 4 : 0,
+              background: dragOverColumn === col.id ? "rgba(255,255,255,0.02)" : "transparent",
+              padding: dragOverColumn === col.id ? 4 : 0,
             }}
             onDragOver={(e) => {
               e.preventDefault();
-              if (canDrag) setDragOverColumn(status);
+              if (canDrag) setDragOverColumn(col.id);
             }}
             onDragLeave={() => setDragOverColumn(null)}
             onDrop={(e) => {
               e.preventDefault();
               setDragOverColumn(null);
               const taskId = e.dataTransfer.getData("taskId");
-              if (taskId && canDrag) handleDrop(taskId, status);
+              if (taskId && canDrag) handleDrop(taskId, col.dropStatus);
             }}
           >
             {/* Column Header */}
             <div className="flex items-center gap-2 mb-3 px-1">
-              <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-              <span className="text-xs font-bold text-slate-200 tracking-wide">{cfg.label}</span>
+              <span className="w-2 h-2 rounded-full" style={{ background: col.color }} />
+              <span className="text-xs font-bold text-slate-200 tracking-wide">{col.label}</span>
               <span className="text-xs text-slate-600 bg-white/[0.03] px-2 py-0.5 rounded-full font-semibold">
-                {grouped[status].length}
+                {grouped[col.id].length}
               </span>
             </div>
 
             {/* Cards */}
             <div className="flex flex-col gap-1.5 flex-1 min-h-[100px]">
-              {grouped[status].map((task) => (
+              {grouped[col.id].map((task) => (
                 <div
                   key={task.id}
                   draggable={canDrag}
@@ -254,7 +289,7 @@ export default function DashboardClient({ role }) {
                   <TaskCard task={task} onClick={() => setSelectedTask(task)} />
                 </div>
               ))}
-              {grouped[status].length === 0 && (
+              {grouped[col.id].length === 0 && (
                 <div className="py-8 text-center text-xs text-slate-700 border-2 border-dashed border-white/[0.03] rounded-xl">
                   Brak zadań
                 </div>
