@@ -81,15 +81,18 @@ export async function POST(request) {
 
     let emailSent = false;
     let emailError = null;
+    let emailErrorMessage = null;
     try {
       const emailResult = await notifyNewTask(newTask);
       emailSent = emailResult?.success === true;
       if (!emailSent) {
         emailError = emailResult?.reason || "api_error";
-        console.warn("[tasks] Powiadomienie email nie wysłane:", emailError, emailResult?.data || emailResult?.error);
+        emailErrorMessage = emailResult?.message || emailResult?.error || null;
+        console.warn("[tasks] Powiadomienie email nie wysłane:", emailError, emailErrorMessage, emailResult?.data);
       }
     } catch (e) {
       emailError = "network_error";
+      emailErrorMessage = e?.message || null;
       console.error("[notifyNewTask]", e);
     }
 
@@ -100,6 +103,7 @@ export async function POST(request) {
       comments: [],
       emailSent,
       emailError,
+      emailErrorMessage: emailErrorMessage || undefined,
     };
     return NextResponse.json(payload, { status: 201 });
   } catch (err) {
