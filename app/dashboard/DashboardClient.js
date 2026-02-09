@@ -205,9 +205,9 @@ export default function DashboardClient({ role }) {
       <Notification message={notification} />
 
       {/* Top Bar */}
-      <header className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/5 sticky top-0 z-50"
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5 sticky top-0 z-50"
         style={{ background: "rgba(15,23,42,0.85)", backdropFilter: "blur(12px)" }}>
-        <h1 className="text-xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight">
           <span className="text-brand-400">Zadania</span>{" "}
           <span className="text-slate-100">Pro</span>
         </h1>
@@ -229,21 +229,21 @@ export default function DashboardClient({ role }) {
       </header>
 
       {/* Summary Bar */}
-      <div className="flex gap-3 px-4 sm:px-6 py-4 overflow-x-auto">
+      <div className="flex gap-3 px-4 sm:px-6 py-5 overflow-x-auto">
         {COLUMNS.map((col) => (
-          <div key={col.id} className="flex items-center gap-2 px-3 py-2 rounded-lg min-w-fit"
+          <div key={col.id} className="flex items-center gap-2 px-4 py-2.5 rounded-lg min-w-fit"
             style={{ background: `${col.color}08`, border: `1px solid ${col.color}20` }}>
-            <span className="text-lg font-bold" style={{ color: col.color }}>{grouped[col.id].length}</span>
-            <span className="text-xs text-slate-500">{col.label}</span>
+            <span className="text-xl font-bold" style={{ color: col.color }}>{grouped[col.id].length}</span>
+            <span className="text-sm text-slate-500">{col.label}</span>
           </div>
         ))}
         <div className="flex-1" />
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg min-w-fit"
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg min-w-fit"
           style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <span className="text-lg font-bold text-slate-100">
+          <span className="text-xl font-bold text-slate-100">
             {totalAccepted.toLocaleString("pl-PL")}
           </span>
-          <span className="text-xs text-slate-500">PLN</span>
+          <span className="text-sm text-slate-500">PLN</span>
         </div>
       </div>
 
@@ -270,10 +270,10 @@ export default function DashboardClient({ role }) {
             }}
           >
             {/* Column Header */}
-            <div className="flex items-center gap-2 mb-3 px-1">
-              <span className="w-2 h-2 rounded-full" style={{ background: col.color }} />
-              <span className="text-xs font-bold text-slate-200 tracking-wide">{col.label}</span>
-              <span className="text-xs text-slate-600 bg-white/[0.03] px-2 py-0.5 rounded-full font-semibold">
+            <div className="flex items-center gap-2 mb-4 py-2 px-1">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: col.color }} />
+              <span className="text-sm font-bold text-slate-200 tracking-wide">{col.label}</span>
+              <span className="text-sm text-slate-600 bg-white/[0.03] px-2.5 py-1 rounded-full font-semibold">
                 {grouped[col.id].length}
               </span>
             </div>

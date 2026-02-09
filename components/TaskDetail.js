@@ -40,8 +40,8 @@ function timeAgo(s) {
 function Section({ label, action, children }) {
   return (
     <div>
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">{label}</span>
+      <div className="flex justify-between items-center mb-3 py-2">
+        <span className="text-sm text-slate-500 font-semibold uppercase tracking-wider">{label}</span>
         {action}
       </div>
       {children}
@@ -211,7 +211,7 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
                 <button onClick={() => { setTitleDraft(lt.title); setEditTitle(false); }} className="px-2 py-1.5 rounded text-xs text-slate-500 bg-white/5">✕</button>
               </div>
             ) : (
-              <h2 className="text-lg font-bold text-slate-50 leading-tight">
+              <h2 className="text-xl font-bold text-slate-50 leading-tight">
                 {lt.title}
                 {canEditTitleDesc && (
                   <button type="button" onClick={() => { setTitleDraft(lt.title); setEditTitle(true); }} className="ml-2 text-slate-500 hover:text-slate-300 text-sm font-normal">Edytuj</button>
@@ -255,7 +255,7 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
           )}
 
           {/* Description */}
-          <Section label="Opis" action={canEditTitleDesc && !editDescription && <button type="button" onClick={() => { setDescriptionDraft(lt.description || ""); setEditDescription(true); }} className="text-[11px] text-brand-400 font-semibold hover:text-brand-200">Edytuj</button>}>
+          <Section label="Opis" action={canEditTitleDesc && !editDescription && <button type="button" onClick={() => { setDescriptionDraft(lt.description || ""); setEditDescription(true); }} className="text-xs text-brand-400 font-semibold hover:text-brand-200">Edytuj</button>}>
             {canEditTitleDesc && editDescription ? (
               <div className="space-y-2">
                 <textarea value={descriptionDraft} onChange={(e) => setDescriptionDraft(e.target.value)} rows={5}
@@ -323,7 +323,7 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
                 {/* Admin: ręczna zmiana stanu wyceny (Wycenione / Wycena zaakceptowana) */}
                 {canEdit && (
                   <div>
-                    <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider block mb-1.5">Stan wyceny</span>
+                    <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block mb-2">Stan wyceny</span>
                     <select
                       value={lt.quoteStatus}
                       onChange={(e) => setQuoteStatus(e.target.value)}
@@ -364,7 +364,7 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
           {/* Files */}
           <Section label={`Pliki (${lt.files?.length || 0})`}
             action={
-              <label className="text-[11px] text-brand-400 font-semibold cursor-pointer hover:text-brand-200">
+              <label className="text-xs text-brand-400 font-semibold cursor-pointer hover:text-brand-200">
                 {uploading ? "Wysyłanie..." : "+ Dodaj"}
                 <input ref={fRef} type="file" className="hidden" onChange={uploadFile} disabled={uploading} />
               </label>

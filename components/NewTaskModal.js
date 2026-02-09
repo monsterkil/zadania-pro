@@ -90,21 +90,21 @@ export default function NewTaskModal({ role, draft = DEFAULT_DRAFT, setDraft, on
         className="w-full max-w-[480px] rounded-2xl p-6 animate-scale-in"
         style={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 25px 50px rgba(0,0,0,0.5)" }}>
 
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-bold text-slate-50">Nowe zadanie</h2>
+        <div className="flex justify-between items-center mb-6 py-1">
+          <h2 className="text-xl font-bold text-slate-50">Nowe zadanie</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-300 bg-white/5">✕</button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-slate-500 font-semibold mb-1.5">Tytuł *</label>
+            <label className="block text-sm text-slate-500 font-semibold mb-2">Tytuł *</label>
             <input value={title} onChange={(e) => updateDraft({ title: e.target.value })}
               placeholder="Np. Nowy landing page"
               className={inputCls} autoFocus />
           </div>
 
           <div>
-            <label className="block text-xs text-slate-500 font-semibold mb-1.5">Opis</label>
+            <label className="block text-sm text-slate-500 font-semibold mb-2">Opis</label>
             <textarea value={description} onChange={(e) => updateDraft({ description: e.target.value })}
               placeholder="Szczegółowy opis zadania..."
               rows={4}
@@ -124,7 +124,7 @@ export default function NewTaskModal({ role, draft = DEFAULT_DRAFT, setDraft, on
 
           {requiresQuote && canSetQuote && (
             <div className="animate-fade-in">
-              <label className="block text-xs text-slate-500 font-semibold mb-1.5">Kwota wyceny (PLN)</label>
+              <label className="block text-sm text-slate-500 font-semibold mb-2">Kwota wyceny (PLN)</label>
               <input type="number" value={quoteAmount} onChange={(e) => updateDraft({ quoteAmount: e.target.value })}
                 placeholder="Opcjonalne — dodaj później"
                 className={inputCls} />
