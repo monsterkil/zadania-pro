@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run db:push:ci && next build",
+    "build": "next build",
     "db:push:ci": "drizzle-kit push --force",
     "start": "next start",
     "db:push": "drizzle-kit push",
