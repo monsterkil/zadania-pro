@@ -46,10 +46,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 @keyframes task-title-marquee {
   0% { transform: translateX(0); }
-  40% { transform: translateX(calc(-1 * var(--marquee-distance, 0px))); }
-  60% { transform: translateX(calc(-1 * var(--marquee-distance, 0px))); }
+  28% { transform: translateX(calc(-1 * var(--marquee-distance, 0px))); }
+  48% { transform: translateX(calc(-1 * var(--marquee-distance, 0px))); }
+  76% { transform: translateX(0); }
   100% { transform: translateX(0); }
 }
 .task-title-marquee {
-  animation: task-title-marquee 5s ease-in-out infinite;
+  animation: task-title-marquee 4s ease-out infinite;
 }
