@@ -43,3 +43,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .animate-slide-down { animation: slideDown 0.3s ease; }
 .animate-fade-in { animation: fadeIn 0.2s ease; }
 .animate-scale-in { animation: scaleIn 0.2s ease; }
+
+@keyframes task-title-marquee {
+  0% { transform: translateX(0); }
+  40% { transform: translateX(calc(-1 * var(--marquee-distance, 0px))); }
+  60% { transform: translateX(calc(-1 * var(--marquee-distance, 0px))); }
+  100% { transform: translateX(0); }
+}
+.task-title-marquee {
+  animation: task-title-marquee 5s ease-in-out infinite;
+}

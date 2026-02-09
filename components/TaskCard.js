@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useState, useLayoutEffect } from "react";
+
 const QUOTE_STATUS = {
   pending: { label: "Oczekuje", color: "#f59e0b", icon: "⏳" },
   accepted: { label: "Zaakceptowana", color: "#10b981", icon: "✓" },
@@ -31,6 +33,21 @@ export default function TaskCard({ task, onClick }) {
   const fileCount = task.files?.length || 0;
   const commentCount = task.comments?.length || 0;
 
+  const titleWrapRef = useRef(null);
+  const titleTextRef = useRef(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [marqueeDistance, setMarqueeDistance] = useState(0);
+
+  useLayoutEffect(() => {
+    const wrap = titleWrapRef.current;
+    const text = titleTextRef.current;
+    if (!wrap || !text) return;
+    const overflow = text.scrollWidth - wrap.clientWidth;
+    setIsTruncated(overflow > 2);
+    setMarqueeDistance(overflow);
+  }, [task.title]);
+
   return (
     <div
       onClick={onClick}
@@ -44,15 +61,26 @@ export default function TaskCard({ task, onClick }) {
       onMouseEnter={(e) => {
         e.currentTarget.style.background = "rgba(255,255,255,0.05)";
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+        setIsHovered(true);
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.background = "rgba(255,255,255,0.025)";
         e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)";
+        setIsHovered(false);
       }}
     >
-      {/* Title */}
-      <div className="text-[13px] font-semibold text-slate-200 leading-tight mb-1.5 truncate">
-        {task.title}
+      {/* Title — przy najechaniu, jeśli się nie mieści, przewija */}
+      <div
+        ref={titleWrapRef}
+        className="text-[13px] font-semibold text-slate-200 leading-tight mb-1.5 overflow-hidden"
+      >
+        <span
+          ref={titleTextRef}
+          className={`inline-block whitespace-nowrap ${isTruncated && isHovered ? "task-title-marquee" : ""}`}
+          style={isTruncated && isHovered ? { "--marquee-distance": `${marqueeDistance}px` } : undefined}
+        >
+          {task.title}
+        </span>
       </div>
 
       {/* Meta row */}
