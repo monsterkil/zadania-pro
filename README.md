@@ -91,13 +91,54 @@ Po ustawieniu zmiennych, kliknij **Redeploy** w Vercel.
 | W realizacji (z terminem) | biuro@biostima.pl | `EMAIL_STATUS_CHANGE_TO` |
 | Ukończone | biuro@biostima.pl | `EMAIL_STATUS_CHANGE_TO` |
 
-## Konfiguracja EmailLabs
+## Konfiguracja EmailLabs (klucze API)
 
 1. Zaloguj się na [panel.emaillabs.net.pl](https://panel.emaillabs.net.pl)
 2. Przejdź do **Ustawienia** → **API**
-3. Skopiuj **App Key** i **Secret Key**
-4. Nazwa konta SMTP znajdziesz w **Konta SMTP** (np. `1.biostima.smtp`)
-5. Upewnij się, że domena `biostima.pl` jest dodana i zweryfikowana
+3. Skopiuj **App Key** i **Secret Key** → ustaw w Vercel jako `EMAILLABS_APP_KEY`, `EMAILLABS_SECRET_KEY`
+4. W **Konta SMTP** znajdź nazwę konta (np. `1.biostima.smtp`) → ustaw w Vercel jako `EMAILLABS_SMTP_ACCOUNT`
+
+## Autoryzacja nadawcy (EMAIL_FROM) — dlaczego „Sender address is not valid”
+
+EmailLabs wymaga **autoryzacji domeny**, z której wysyłasz maile. Bez tego API zwraca błąd „Sender address is not valid”.
+
+### Kroki w panelu EmailLabs (stary panel: emaillabs.net.pl)
+
+1. Zaloguj się do panelu EmailLabs.
+2. Z lewego menu wybierz **Administrator** → **Autoryzacja nadawcy**.
+3. Po prawej stronie kliknij **„Dodaj domenę”**.
+4. **Wybierz subkonto (konto SMTP)** — to samo, którego nazwę podałeś w `EMAILLABS_SMTP_ACCOUNT` (np. konto odpowiadające `1.biostima.smtp`).
+5. W polu **„Domena From”** wpisz **domenę** z adresu `EMAIL_FROM`:
+   - jeśli masz `EMAIL_FROM=zadania@biostima.pl`, wpisz: **`biostima.pl`**
+   - tylko domena, bez `http://`, bez `www`, bez adresu e-mail.
+6. W ustawieniach zaawansowanych w polu **„Selektor DKIM”** wpisz krótką etykietę (max 7 znaków, np. `pl` lub `elabs`).
+7. Kliknij **„Zapisz”**. Panel wygeneruje **kilka rekordów DNS** (CNAME itd.).
+8. W panelu **DNS u swojego hostingu** (gdzie zarządzasz domeną, np. biostima.pl) dodaj **dokładnie** te rekordy, które pokazał EmailLabs (typ, nazwa, wartość). Każdy hosting ma inny interfejs — szukaj sekcji „DNS”, „Rekordy DNS”, „Zarządzaj domeną”.
+9. Poczekaj na **propagację DNS** (zazwyczaj 15 minut – 24 godziny).
+10. Wróć do EmailLabs, w sekcji Autoryzacja nadawcy przy swojej domenie kliknij **„Check”**. Status powinien zmienić się na **„Accepted”**.
+11. Gdy status = **Accepted**, możesz wysyłać maile z **dowolnego adresu** na tej domenie, np. `zadania@biostima.pl`, `noreply@biostima.pl`.
+
+### Uwagi
+
+- **EMAIL_FROM** w Vercel musi być w formacie `cokolwiek@twoja-zweryfikowana-domena.pl` (np. `zadania@biostima.pl`). Domena po `@` musi być tą samą, którą zautoryzowałeś w kroku 5.
+- Jeśli konto EmailLabs zostało utworzone **przed 30.01.2024**, po dodaniu rekordów DNS wyślij mail do **bok@emaillabs.pl**, że dokończyłeś autoryzację — wtedy przełączą wysyłki na nowy system.
+- Pełna dokumentacja: [Autoryzacja nadawcy – EmailLabs](https://docs.emaillabs.io/panel-analityczny/administrator/autoryzacja-nadawcy/autoryzacja-domeny-from-konfigurator)
+
+### Nadal „Sender address is not valid” mimo Accepted?
+
+1. **Sprawdź, co faktycznie idzie do API**  
+   Vercel → Deployments → ostatni deploy → **Functions** → wywołanie **POST /api/tasks** → **Logs**. Szukaj linii:  
+   `[EmailLabs] Odrzucono nadawcę. Wysłano: from=... smtp_account=...`  
+   Upewnij się, że `from` i `smtp_account` są **dokładnie** takie jak w Environment Variables (bez spacji na początku/końcu).
+
+2. **Użyj tego samego adresu co w działającej aplikacji**  
+   Jeśli w innej aplikacji maile z EmailLabs działają, ustaw w Vercel **`EMAIL_FROM`** na **ten sam adres** (np. `biuro@biostima.pl`).
+
+3. **Dwa panele EmailLabs**  
+   Są panel stary (emaillabs.net.pl) i nowy (newpanel.emaillabs.io). Klucze API i autoryzacja mogą być przypisane do jednego z nich. Upewnij się, że klucze (`EMAILLABS_APP_KEY`, `EMAILLABS_SECRET_KEY`) są z tego samego panelu, w którym zrobiłeś autoryzację domeny dla konta `1.biostima.smtp`.
+
+4. **Kontakt z EmailLabs**  
+   Jeśli domena ma status **Accepted** i `EMAIL_FROM` jest w formacie `xxx@biostima.pl`, napisz do **bok@emaillabs.pl**: opisz błąd „Sender address is not valid”, podaj adres `from` i `smtp_account` (np. `1.biostima.smtp`) oraz że rekordy DNS są Accepted — poproś o sprawdzenie po stronie API.
 
 ## Role użytkowników
 

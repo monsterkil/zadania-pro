@@ -75,7 +75,7 @@ export default function DashboardClient({ role }) {
           : reason === "no_smtp_account"
             ? "Zadanie dodane. Email: dodaj EMAILLABS_SMTP_ACCOUNT w Vercel (np. 1.biostima.smtp)."
             : reason === "api_error" && senderInvalid
-              ? "Zadanie dodane. Email: adres nadawcy (EMAIL_FROM) nie jest dozwolony w EmailLabs — dodaj/zweryfikuj domenę w panelu EmailLabs lub ustaw EMAIL_FROM na adres z tej domeny."
+              ? "Zadanie dodane. Email: ustaw EMAIL_FROM w Vercel na adres zweryfikowany w EmailLabs (np. nazwa@twoja-domena.pl)."
               : reason === "api_error"
                 ? `Zadanie dodane. Email: błąd EmailLabs${detail ? ` (${detail})` : " — sprawdź klucze API i konto SMTP w panelu EmailLabs."}`
                 : reason === "network_error"
