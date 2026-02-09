@@ -22,7 +22,7 @@ export function middleware(request) {
     const parts = token.split(".");
     if (parts.length !== 3) throw new Error("Invalid token");
     const payload = JSON.parse(atob(parts[1]));
-    if (!payload.role || !["admin", "collaborator", "client"].includes(payload.role)) {
+    if (!payload.role || !["admin", "admin2", "collaborator", "client"].includes(payload.role)) {
       throw new Error("Invalid role");
     }
   } catch {

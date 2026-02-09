@@ -9,7 +9,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Brak roli lub hasła" }, { status: 400 });
     }
 
-    if (!["admin", "collaborator", "client"].includes(role)) {
+    if (!["admin", "admin2", "collaborator", "client"].includes(role)) {
       return NextResponse.json({ error: "Nieprawidłowa rola" }, { status: 400 });
     }
 

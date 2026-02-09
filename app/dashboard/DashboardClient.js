@@ -14,9 +14,10 @@ const STATUS_CONFIG = {
 };
 
 const ROLE_CONFIG = {
-  admin: { label: "Admin", color: "#3b82f6" },
+  admin: { label: "Admin 1", color: "#3b82f6" },
+  admin2: { label: "Admin 2", color: "#2563eb" },
   collaborator: { label: "Współpracownik", color: "#7c3aed" },
-  client: { label: "Klient", color: "#059669" },
+  client: { label: "Paweł", color: "#059669" },
 };
 
 export default function DashboardClient({ role }) {
@@ -25,6 +26,7 @@ export default function DashboardClient({ role }) {
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showNewTask, setShowNewTask] = useState(false);
+  const [newTaskDraft, setNewTaskDraft] = useState({ title: "", description: "", requiresQuote: false, quoteAmount: "" });
   const [notification, setNotification] = useState(null);
   const [dragOverColumn, setDragOverColumn] = useState(null);
 
@@ -124,7 +126,7 @@ export default function DashboardClient({ role }) {
     }
   };
 
-  const canDrag = role === "admin" || role === "collaborator";
+  const canDrag = role === "admin" || role === "admin2" || role === "collaborator";
 
   const grouped = {
     new: tasks.filter((t) => t.status === "new"),
@@ -270,6 +272,8 @@ export default function DashboardClient({ role }) {
       {showNewTask && (
         <NewTaskModal
           role={role}
+          draft={newTaskDraft}
+          setDraft={setNewTaskDraft}
           onClose={() => setShowNewTask(false)}
           onCreated={handleTaskCreated}
         />

@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const ROLES = [
-  { key: "admin", label: "Admin", color: "#3b82f6" },
+  { key: "admin", label: "Admin 1", color: "#3b82f6" },
+  { key: "admin2", label: "Admin 2", color: "#2563eb" },
   { key: "collaborator", label: "Współpracownik", color: "#7c3aed" },
-  { key: "client", label: "Klient", color: "#059669" },
+  { key: "client", label: "Paweł", color: "#059669" },
 ];
 
 export default function LoginPage() {

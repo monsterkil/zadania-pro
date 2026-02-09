@@ -58,7 +58,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "Tytuł jest wymagany" }, { status: 400 });
     }
 
-    const canSetQuote = session.role === "admin" || session.role === "collaborator";
+    const canSetQuote = session.role === "admin" || session.role === "admin2" || session.role === "collaborator";
 
     const inserted = await db
       .insert(tasks)

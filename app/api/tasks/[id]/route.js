@@ -37,7 +37,7 @@ export async function PATCH(request, { params }) {
     const session = await requireAuth();
     const { id } = await params;
     const body = await request.json();
-    const canEdit = session.role === "admin" || session.role === "collaborator";
+    const canEdit = session.role === "admin" || session.role === "admin2" || session.role === "collaborator";
 
     // Get current task
     const [currentTask] = await db.select().from(tasks).where(eq(tasks.id, id));
@@ -110,7 +110,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const session = await requireAuth();
-    if (session.role !== "admin" && session.role !== "collaborator") {
+    if (session.role !== "admin" && session.role !== "admin2" && session.role !== "collaborator") {
       return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
     }
 

@@ -1,15 +1,20 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
-export default function NewTaskModal({ role, onClose, onCreated }) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [requiresQuote, setRequiresQuote] = useState(true);
-  const [quoteAmount, setQuoteAmount] = useState("");
+const DEFAULT_DRAFT = { title: "", description: "", requiresQuote: false, quoteAmount: "" };
+
+export default function NewTaskModal({ role, draft = DEFAULT_DRAFT, setDraft, onClose, onCreated }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const backdropMousedownRef = useRef(false);
 
-  const canSetQuote = role === "admin" || role === "collaborator";
+  const title = draft.title ?? "";
+  const description = draft.description ?? "";
+  const requiresQuote = draft.requiresQuote ?? false;
+  const quoteAmount = draft.quoteAmount ?? "";
+  const updateDraft = (changes) => setDraft?.((prev) => ({ ...prev, ...changes })) ?? (() => {});
+
+  const canSetQuote = role === "admin" || role === "admin2" || role === "collaborator";
 
   const handleSubmit = async () => {
     if (!title.trim() || loading) return;
@@ -33,6 +38,7 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
       if (res.ok) {
         const task = data;
         onCreated(normalizeTask(task));
+        setDraft?.(DEFAULT_DRAFT);
         onClose();
         return;
       }
@@ -60,10 +66,27 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
 
   const inputCls = "w-full px-4 py-3 rounded-xl text-sm text-slate-100 outline-none placeholder:text-slate-600 bg-white/[0.03] border border-white/[0.07] focus:border-white/[0.15] transition-colors";
 
+  const handleBackdropClick = (e) => {
+    if (e.target !== e.currentTarget) return;
+    if (backdropMousedownRef.current) onClose();
+    backdropMousedownRef.current = false;
+  };
+  const handleBackdropMouseDown = (e) => {
+    if (e.target === e.currentTarget) backdropMousedownRef.current = true;
+  };
+  const handleBackdropMouseUp = (e) => {
+    if (e.target !== e.currentTarget) backdropMousedownRef.current = false;
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()}
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in"
+      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+      onClick={handleBackdropClick}
+      onMouseDown={handleBackdropMouseDown}
+      onMouseUp={handleBackdropMouseUp}
+    >
+      <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()} onMouseUp={(e) => e.stopPropagation()}
         className="w-full max-w-[480px] rounded-2xl p-6 animate-scale-in"
         style={{ background: "#1e293b", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 25px 50px rgba(0,0,0,0.5)" }}>
 
@@ -75,14 +98,14 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
         <div className="space-y-4">
           <div>
             <label className="block text-xs text-slate-500 font-semibold mb-1.5">Tytuł *</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)}
+            <input value={title} onChange={(e) => updateDraft({ title: e.target.value })}
               placeholder="Np. Nowy landing page"
               className={inputCls} autoFocus />
           </div>
 
           <div>
             <label className="block text-xs text-slate-500 font-semibold mb-1.5">Opis</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)}
+            <textarea value={description} onChange={(e) => updateDraft({ description: e.target.value })}
               placeholder="Szczegółowy opis zadania..."
               rows={4}
               className={inputCls + " resize-y font-[inherit]"} />
@@ -90,7 +113,7 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
 
           {/* Quote toggle */}
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-            <div onClick={() => setRequiresQuote(!requiresQuote)}
+            <div onClick={() => updateDraft({ requiresQuote: !requiresQuote })}
               className="w-10 h-[22px] rounded-full relative cursor-pointer transition-colors flex-shrink-0"
               style={{ background: requiresQuote ? "#3b82f6" : "rgba(255,255,255,0.1)" }}>
               <div className="w-[18px] h-[18px] rounded-full bg-white absolute top-[2px] transition-[left]"
@@ -102,7 +125,7 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
           {requiresQuote && canSetQuote && (
             <div className="animate-fade-in">
               <label className="block text-xs text-slate-500 font-semibold mb-1.5">Kwota wyceny (PLN)</label>
-              <input type="number" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)}
+              <input type="number" value={quoteAmount} onChange={(e) => updateDraft({ quoteAmount: e.target.value })}
                 placeholder="Opcjonalne — dodaj później"
                 className={inputCls} />
             </div>

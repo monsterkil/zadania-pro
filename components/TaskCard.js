@@ -15,6 +15,7 @@ const STATUS_COLORS = {
 
 const ROLE_COLORS = {
   admin: "#3b82f6",
+  admin2: "#2563eb",
   collaborator: "#7c3aed",
   client: "#059669",
 };

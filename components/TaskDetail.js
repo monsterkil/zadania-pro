@@ -13,9 +13,10 @@ const QUOTE_STATUS = {
   not_required: { label: "Bez wyceny", color: "#6b7280", icon: "—" },
 };
 const ROLE_CFG = {
-  admin: { label: "Admin", color: "#3b82f6" },
+  admin: { label: "Admin 1", color: "#3b82f6" },
+  admin2: { label: "Admin 2", color: "#2563eb" },
   collaborator: { label: "Współpracownik", color: "#7c3aed" },
-  client: { label: "Klient", color: "#059669" },
+  client: { label: "Paweł", color: "#059669" },
 };
 
 function fmtDate(d) {
@@ -58,8 +59,8 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
   const cRef = useRef(null);
   const fRef = useRef(null);
 
-  const canEdit = role === "admin" || role === "collaborator";
-  const canDelete = role === "admin" || role === "collaborator";
+  const canEdit = role === "admin" || role === "admin2" || role === "collaborator";
+  const canDelete = canEdit;
   const canEditTitleDesc = canEdit || (role === "client" && lt.createdBy === "client");
   const canAccept = role === "client" && lt.quoteStatus === "pending" && lt.quoteAmount;
   const blocked = lt.requiresQuote && lt.quoteStatus === "pending" && lt.status === "new";
