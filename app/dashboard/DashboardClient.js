@@ -269,11 +269,11 @@ export default function DashboardClient({ role }) {
               if (taskId && canDrag) handleDrop(taskId, col.dropStatus);
             }}
           >
-            {/* Column Header */}
-            <div className="flex items-center gap-2 mb-4 py-2 px-1">
-              <span className="w-2.5 h-2.5 rounded-full" style={{ background: col.color }} />
-              <span className="text-sm font-bold text-slate-200 tracking-wide">{col.label}</span>
-              <span className="text-sm text-slate-600 bg-white/[0.03] px-2.5 py-1 rounded-full font-semibold">
+            {/* Column Header — nazwa kolumny + liczba zadań */}
+            <div className="flex items-center gap-3 mb-4 py-4 px-3">
+              <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: col.color }} />
+              <span className="text-base font-bold text-slate-200 tracking-wide">{col.label}</span>
+              <span className="text-base text-slate-600 bg-white/[0.03] px-3 py-1.5 rounded-full font-semibold">
                 {grouped[col.id].length}
               </span>
             </div>
