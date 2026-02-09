@@ -67,17 +67,20 @@ export default function DashboardClient({ role }) {
       showNotif("📧 Zadanie dodane. Email wysłany.");
     } else {
       const reason = newTask.emailError;
-      const detail = newTask.emailErrorMessage ? ` (${newTask.emailErrorMessage})` : "";
+      const detail = newTask.emailErrorMessage || "";
+      const senderInvalid = /sender address|nadawc|from.*valid|nieprawidłow/i.test(detail);
       const msg =
         reason === "no_api_keys"
           ? "Zadanie dodane. Email: dodaj EMAILLABS_APP_KEY i EMAILLABS_SECRET_KEY w Vercel (Settings → Environment Variables)."
           : reason === "no_smtp_account"
             ? "Zadanie dodane. Email: dodaj EMAILLABS_SMTP_ACCOUNT w Vercel (np. 1.biostima.smtp)."
-            : reason === "api_error"
-              ? `Zadanie dodane. Email: błąd EmailLabs${detail || " — sprawdź klucze API i konto SMTP w panelu EmailLabs."}`
-              : reason === "network_error"
-                ? "Zadanie dodane. Email: błąd połączenia z EmailLabs."
-                : "Zadanie dodane. Powiadomienie email nie wysłane — ustaw EMAILLABS_APP_KEY, EMAILLABS_SECRET_KEY, EMAILLABS_SMTP_ACCOUNT w Vercel.";
+            : reason === "api_error" && senderInvalid
+              ? "Zadanie dodane. Email: adres nadawcy (EMAIL_FROM) nie jest dozwolony w EmailLabs — dodaj/zweryfikuj domenę w panelu EmailLabs lub ustaw EMAIL_FROM na adres z tej domeny."
+              : reason === "api_error"
+                ? `Zadanie dodane. Email: błąd EmailLabs${detail ? ` (${detail})` : " — sprawdź klucze API i konto SMTP w panelu EmailLabs."}`
+                : reason === "network_error"
+                  ? "Zadanie dodane. Email: błąd połączenia z EmailLabs."
+                  : "Zadanie dodane. Powiadomienie email nie wysłane — ustaw EMAILLABS_APP_KEY, EMAILLABS_SECRET_KEY, EMAILLABS_SMTP_ACCOUNT w Vercel.";
       showNotif(msg);
     }
   };
