@@ -42,7 +42,6 @@ export async function POST(request) {
   try {
     const session = await requireAuth();
     const body = await request.json();
-
     const { title, description, requiresQuote, quoteAmount } = body;
 
     if (!title || !title.trim()) {
@@ -67,7 +66,13 @@ export async function POST(request) {
     // Send email notification
     notifyNewTask(newTask).catch(console.error);
 
-    return NextResponse.json({ ...newTask, files: [], comments: [] }, { status: 201 });
+    const payload = {
+      ...newTask,
+      quoteAmount: newTask.quoteAmount != null ? parseFloat(newTask.quoteAmount) : null,
+      files: [],
+      comments: [],
+    };
+    return NextResponse.json(payload, { status: 201 });
   } catch (err) {
     if (err.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

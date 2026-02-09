@@ -7,12 +7,14 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
   const [requiresQuote, setRequiresQuote] = useState(true);
   const [quoteAmount, setQuoteAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const canSetQuote = role === "admin" || role === "collaborator";
 
   const handleSubmit = async () => {
     if (!title.trim() || loading) return;
     setLoading(true);
+    setError(null);
 
     try {
       const res = await fetch("/api/tasks", {
@@ -26,14 +28,35 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (res.ok) {
-        const task = await res.json();
-        onCreated(task);
+        const task = data;
+        onCreated(normalizeTask(task));
         onClose();
+        return;
       }
-    } catch {}
-    setLoading(false);
+
+      if (res.status === 401) {
+        setError("Sesja wygasła. Zaloguj się ponownie.");
+        return;
+      }
+      setError(data?.error || `Błąd (${res.status}). Spróbuj ponownie.`);
+    } catch (e) {
+      setError("Błąd połączenia. Sprawdź internet i spróbuj ponownie.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  function normalizeTask(t) {
+    return {
+      ...t,
+      quoteAmount: t.quoteAmount != null ? parseFloat(t.quoteAmount) : null,
+      files: t.files ?? [],
+      comments: t.comments ?? [],
+    };
+  }
 
   const inputCls = "w-full px-4 py-3 rounded-xl text-sm text-slate-100 outline-none placeholder:text-slate-600 bg-white/[0.03] border border-white/[0.07] focus:border-white/[0.15] transition-colors";
 
@@ -82,6 +105,12 @@ export default function NewTaskModal({ role, onClose, onCreated }) {
               <input type="number" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)}
                 placeholder="Opcjonalne — dodaj później"
                 className={inputCls} />
+            </div>
+          )}
+
+          {error && (
+            <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-400">
+              {error}
             </div>
           )}
 

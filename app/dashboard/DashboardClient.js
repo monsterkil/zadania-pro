@@ -237,7 +237,7 @@ export default function DashboardClient({ role }) {
         ))}
       </div>
 
-      {/* FAB */}
+      {/* FAB — wszyscy zalogowani mogą dodawać zadania */}
       <button
         onClick={() => setShowNewTask(true)}
         className="fixed bottom-6 right-6 w-14 h-14 rounded-2xl text-white text-2xl font-light flex items-center justify-center z-40 transition-all hover:scale-105 active:scale-95"
