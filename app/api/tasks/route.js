@@ -79,14 +79,23 @@ export async function POST(request) {
       return NextResponse.json({ error: "Błąd zapisu do bazy" }, { status: 500 });
     }
 
-    // Email w tle — nie blokuje odpowiedzi
-    notifyNewTask(newTask).catch((e) => console.error("[notifyNewTask]", e));
+    let emailSent = false;
+    try {
+      const emailResult = await notifyNewTask(newTask);
+      emailSent = emailResult?.success === true;
+      if (!emailSent) {
+        console.warn("[tasks] Powiadomienie email nie wysłane:", emailResult?.data || emailResult?.error);
+      }
+    } catch (e) {
+      console.error("[notifyNewTask]", e);
+    }
 
     const payload = {
       ...newTask,
       quoteAmount: newTask.quoteAmount != null ? parseFloat(newTask.quoteAmount) : null,
       files: [],
       comments: [],
+      emailSent,
     };
     return NextResponse.json(payload, { status: 201 });
   } catch (err) {

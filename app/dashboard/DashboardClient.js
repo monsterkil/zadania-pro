@@ -63,7 +63,11 @@ export default function DashboardClient({ role }) {
 
   const handleTaskCreated = (newTask) => {
     setTasks((prev) => [newTask, ...prev]);
-    showNotif("📧 Email wysłany — nowe zadanie");
+    if (newTask.emailSent) {
+      showNotif("📧 Zadanie dodane. Email wysłany.");
+    } else {
+      showNotif("Zadanie dodane. Powiadomienie email nie zostało wysłane — sprawdź EMAILLABS_* w Vercel.");
+    }
   };
 
   const handleTaskUpdated = (updatedTask) => {
