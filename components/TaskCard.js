@@ -10,7 +10,7 @@ const QUOTE_STATUS = {
 const STATUS_COLORS = {
   new: "#f59e0b",
   in_progress: "#3b82f6",
-  done: "#10b981",
+  done: "#047857",
 };
 
 const ROLE_COLORS = {

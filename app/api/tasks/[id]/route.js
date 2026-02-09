@@ -72,6 +72,12 @@ export async function PATCH(request, { params }) {
       updates.deadline = body.deadline ? new Date(body.deadline) : null;
     }
 
+    // Quote status (admin/collaborator only) — ręczne ustawienie Wycenione / Wycena zaakceptowana
+    if (body.quoteStatus !== undefined && canEdit) {
+      const v = body.quoteStatus;
+      if (["pending", "accepted", "rejected", "not_required"].includes(v)) updates.quoteStatus = v;
+    }
+
     // Requires quote (admin/collaborator only)
     if (body.requiresQuote !== undefined && canEdit) {
       updates.requiresQuote = !!body.requiresQuote;

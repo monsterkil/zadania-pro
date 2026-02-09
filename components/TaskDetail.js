@@ -107,6 +107,12 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
     if (r.ok) update({ quoteStatus: action });
   };
 
+  const setQuoteStatus = async (v) => {
+    if (!canEdit || v === lt.quoteStatus) return;
+    const r = await patch(`/api/tasks/${lt.id}`, { quoteStatus: v });
+    if (r.ok) update({ quoteStatus: v });
+  };
+
   const setDeadline = async (v) => {
     const r = await patch(`/api/tasks/${lt.id}`, { deadline: v || null });
     if (r.ok) update({ deadline: v || null });
@@ -290,7 +296,7 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
           {/* Quote */}
           <Section label="Wycena">
             {lt.requiresQuote && lt.quoteStatus !== "not_required" ? (
-              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+              <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] space-y-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div>
                     {lt.quoteAmount ? (
@@ -314,6 +320,22 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
                     )}
                   </div>
                 </div>
+                {/* Admin: ręczna zmiana stanu wyceny (Wycenione / Wycena zaakceptowana) */}
+                {canEdit && (
+                  <div>
+                    <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider block mb-1.5">Stan wyceny</span>
+                    <select
+                      value={lt.quoteStatus}
+                      onChange={(e) => setQuoteStatus(e.target.value)}
+                      className="w-full max-w-[200px] py-2 px-3 rounded-lg text-sm font-medium bg-white/[0.04] border border-white/[0.08] text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+                      style={{ color: QUOTE_STATUS[lt.quoteStatus]?.color || "#94a3b8" }}
+                    >
+                      <option value="pending" style={{ color: QUOTE_STATUS.pending.color }}>Wycenione (oczekuje)</option>
+                      <option value="accepted" style={{ color: QUOTE_STATUS.accepted.color }}>Wycena zaakceptowana</option>
+                      <option value="rejected" style={{ color: QUOTE_STATUS.rejected.color }}>Odrzucona</option>
+                    </select>
+                  </div>
+                )}
                 {showQI && (
                   <div className="flex gap-2 mt-3 items-center">
                     <input type="number" value={qi} onChange={(e) => setQi(e.target.value)} placeholder="Kwota PLN"
