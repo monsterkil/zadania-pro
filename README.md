@@ -56,15 +56,24 @@ W Vercel → **Settings** → **Environment Variables** dodaj:
 | `EMAIL_FROM_NAME` | `Zadania Pro` |
 | `NEXT_PUBLIC_APP_URL` | `https://twoja-subdomena.vercel.app` |
 
-### 6. Utwórz tabele w bazie
+### 6. Utwórz tabele w bazie (Neon)
 
-Aby utworzyć tabele, uruchom jednorazowo:
+**Jednorazowo** musisz utworzyć tabele w tej samej bazie Neon, której używa Vercel:
 
-```bash
-npm run db:push
-```
+1. W Vercel → **Settings** → **Environment Variables** skopiuj wartość **`POSTGRES_URL`** lub **`DATABASE_URL`** (z integracji Neon).
+2. Lokalnie w projekcie utwórz plik **`.env.local`** (jeśli go nie ma) i wklej:
+   ```env
+   POSTGRES_URL=postgresql://...   # wklej skopiowany URL
+   ```
+   (Możesz dodać też inne zmienne z `.env.local.example`.)
+3. W katalogu projektu uruchom:
+   ```bash
+   npm install
+   npm run db:push
+   ```
+   To utworzy tabele `tasks`, `task_files`, `comments` w Twojej bazie Neon. Po tym deploy na Vercel będzie mógł dodawać zadania.
 
-Lub uruchom seed (tworzy tabele + przykładowe dane):
+Opcjonalnie — seed (przykładowe dane):
 
 ```bash
 npm run db:seed
