@@ -41,7 +41,17 @@ export async function GET() {
 export async function POST(request) {
   try {
     const session = await requireAuth();
-    const body = await request.json();
+
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Nieprawidłowy format danych (JSON)" }, { status: 400 });
+    }
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Brak danych" }, { status: 400 });
+    }
+
     const { title, description, requiresQuote, quoteAmount } = body;
 
     if (!title || !title.trim()) {
@@ -50,7 +60,7 @@ export async function POST(request) {
 
     const canSetQuote = session.role === "admin" || session.role === "collaborator";
 
-    const [newTask] = await db
+    const inserted = await db
       .insert(tasks)
       .values({
         title: title.trim(),
@@ -63,8 +73,14 @@ export async function POST(request) {
       })
       .returning();
 
-    // Send email notification
-    notifyNewTask(newTask).catch(console.error);
+    const newTask = Array.isArray(inserted) ? inserted[0] : inserted;
+    if (!newTask || !newTask.id) {
+      console.error("POST /api/tasks: insert nie zwrócił zadania", inserted);
+      return NextResponse.json({ error: "Błąd zapisu do bazy" }, { status: 500 });
+    }
+
+    // Email w tle — nie blokuje odpowiedzi
+    notifyNewTask(newTask).catch((e) => console.error("[notifyNewTask]", e));
 
     const payload = {
       ...newTask,
@@ -77,7 +93,39 @@ export async function POST(request) {
     if (err.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.error("POST /api/tasks error:", err);
+    const msg = err?.message || String(err);
+    const code = err?.code;
+    console.error("POST /api/tasks error:", msg, code, err);
+
+    if (!msg && !code) {
+      return NextResponse.json({ error: "Błąd serwera" }, { status: 500 });
+    }
+    if (
+      msg.includes("relation") ||
+      msg.includes("does not exist") ||
+      msg.includes("ENOENT") ||
+      code === "42P01"
+    ) {
+      return NextResponse.json(
+        { error: "Baza nie jest gotowa. W Vercel ustaw POSTGRES_URL/DATABASE_URL i uruchom migrację (np. db:push) na swoim Neon." },
+        { status: 500 }
+      );
+    }
+    if (
+      msg.includes("connect") ||
+      msg.includes("connection") ||
+      msg.includes("ECONNREFUSED") ||
+      msg.includes("Invalid") ||
+      msg.includes("POSTGRES_URL") ||
+      msg.includes("DATABASE_URL") ||
+      code === "ECONNREFUSED" ||
+      code === "PGRST301"
+    ) {
+      return NextResponse.json(
+        { error: "Błąd połączenia z bazą. Sprawdź w Vercel zmienne POSTGRES_URL lub DATABASE_URL (connection string do Neon)." },
+        { status: 500 }
+      );
+    }
     return NextResponse.json({ error: "Błąd serwera" }, { status: 500 });
   }
 }
