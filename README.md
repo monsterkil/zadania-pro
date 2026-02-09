@@ -127,7 +127,7 @@ EmailLabs wymaga **autoryzacji domeny**, z której wysyłasz maile. Bez tego API
 ### Nadal „Sender address is not valid” mimo Accepted?
 
 1. **Sprawdź, co faktycznie idzie do API**  
-   Vercel → Deployments → ostatni deploy → **Functions** → wywołanie **POST /api/tasks** → **Logs**. Szukaj linii:  
+   Vercel → **wybierz projekt** (kliknij nazwę projektu) → u góry kliknij zakładkę **„Logs”** (obok Deployments, Settings). W lewym panelu ustaw filtr **Request Path** → wpisz `api/tasks` albo **Request Method** → `POST`. Kliknij wiersz z wywołaniem POST do `/api/tasks` i w dolnej części zobacz **Log Message** — szukaj linii:  
    `[EmailLabs] Odrzucono nadawcę. Wysłano: from=... smtp_account=...`  
    Upewnij się, że `from` i `smtp_account` są **dokładnie** takie jak w Environment Variables (bez spacji na początku/końcu).
 
