@@ -72,6 +72,12 @@ export async function PATCH(request, { params }) {
       updates.deadline = body.deadline ? new Date(body.deadline) : null;
     }
 
+    // Requires quote (admin/collaborator only)
+    if (body.requiresQuote !== undefined && canEdit) {
+      updates.requiresQuote = !!body.requiresQuote;
+      if (!body.requiresQuote) updates.quoteStatus = "not_required";
+    }
+
     // Title/description (admin/collaborator, or client for own tasks)
     if (body.title !== undefined && (canEdit || (session.role === "client" && currentTask.createdBy === "client"))) {
       updates.title = body.title;
@@ -104,7 +110,7 @@ export async function PATCH(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const session = await requireAuth();
-    if (session.role !== "admin") {
+    if (session.role !== "admin" && session.role !== "collaborator") {
       return NextResponse.json({ error: "Brak uprawnień" }, { status: 403 });
     }
 

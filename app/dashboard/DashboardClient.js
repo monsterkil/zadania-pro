@@ -69,6 +69,12 @@ export default function DashboardClient({ role }) {
     setSelectedTask(updatedTask);
   };
 
+  const handleTaskDeleted = (taskId) => {
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    setSelectedTask(null);
+    showNotif("Zadanie zostało usunięte.");
+  };
+
   const handleDrop = async (taskId, newStatus) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task || task.status === newStatus) return;
@@ -257,6 +263,7 @@ export default function DashboardClient({ role }) {
           onClose={() => setSelectedTask(null)}
           onUpdate={handleTaskUpdated}
           onRefresh={fetchTasks}
+          onDeleted={handleTaskDeleted}
         />
       )}
 

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const STATUS_CONFIG = {
   new: { label: "Nowe", color: "#f59e0b" },
@@ -48,18 +48,34 @@ function Section({ label, action, children }) {
   );
 }
 
-export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh }) {
+export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, onDeleted }) {
   const [lt, setLt] = useState(task);
   const [comment, setComment] = useState("");
   const [showQI, setShowQI] = useState(false);
   const [qi, setQi] = useState(task.quoteAmount || "");
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const cRef = useRef(null);
   const fRef = useRef(null);
 
   const canEdit = role === "admin" || role === "collaborator";
+  const canDelete = role === "admin" || role === "collaborator";
+  const canEditTitleDesc = canEdit || (role === "client" && lt.createdBy === "client");
   const canAccept = role === "client" && lt.quoteStatus === "pending" && lt.quoteAmount;
   const blocked = lt.requiresQuote && lt.quoteStatus === "pending" && lt.status === "new";
+
+  const [editTitle, setEditTitle] = useState(false);
+  const [editDescription, setEditDescription] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(task.title);
+  const [descriptionDraft, setDescriptionDraft] = useState(task.description || "");
+
+  useEffect(() => {
+    setLt(task);
+    setTitleDraft(task.title);
+    setDescriptionDraft(task.description || "");
+    setEditTitle(false);
+    setEditDescription(false);
+  }, [task.id]);
 
   const patch = async (url, body) => {
     const r = await fetch(url, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -95,6 +111,25 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh })
     if (r.ok) update({ deadline: v || null });
   };
 
+  const saveTitle = async () => {
+    const t = titleDraft.trim();
+    if (!t || t === lt.title) { setEditTitle(false); return; }
+    const r = await patch(`/api/tasks/${lt.id}`, { title: t });
+    if (r.ok) { update({ title: t }); setEditTitle(false); }
+  };
+
+  const saveDescription = async () => {
+    const d = descriptionDraft.trim() || null;
+    if (d === (lt.description || "")) { setEditDescription(false); return; }
+    const r = await patch(`/api/tasks/${lt.id}`, { description: d });
+    if (r.ok) { update({ description: d }); setEditDescription(false); }
+  };
+
+  const setRequiresQuote = async (v) => {
+    const r = await patch(`/api/tasks/${lt.id}`, { requiresQuote: v });
+    if (r.ok) update({ requiresQuote: v, quoteStatus: v ? "pending" : "not_required" });
+  };
+
   const addComment = async () => {
     if (!comment.trim()) return;
     const r = await fetch(`/api/tasks/${lt.id}/comments`, {
@@ -127,6 +162,26 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh })
     if (fRef.current) fRef.current.value = "";
   };
 
+  const deleteTask = async () => {
+    if (!canDelete || deleting) return;
+    if (!confirm("Czy na pewno chcesz całkowicie usunąć to zadanie? Tej operacji nie można cofnąć.")) return;
+    setDeleting(true);
+    try {
+      const r = await fetch(`/api/tasks/${lt.id}`, { method: "DELETE" });
+      if (r.ok) {
+        onDeleted?.(lt.id);
+        onClose();
+      } else {
+        const data = await r.json().catch(() => ({}));
+        alert(data?.error || "Nie udało się usunąć zadania.");
+      }
+    } catch {
+      alert("Błąd połączenia.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const qs = QUOTE_STATUS[lt.quoteStatus] || QUOTE_STATUS.pending;
   const inputStyle = "px-3 py-2 rounded-lg text-sm text-slate-100 outline-none bg-white/[0.03] border border-white/[0.08]";
 
@@ -139,8 +194,23 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh })
 
         {/* Header */}
         <div className="flex justify-between items-start p-5 pb-4 border-b border-white/5 sticky top-0 z-10" style={{ background: "#1e293b" }}>
-          <div className="flex-1 mr-4">
-            <h2 className="text-lg font-bold text-slate-50 leading-tight">{lt.title}</h2>
+          <div className="flex-1 mr-4 min-w-0">
+            {canEditTitleDesc && editTitle ? (
+              <div className="flex gap-2 items-center">
+                <input value={titleDraft} onChange={(e) => setTitleDraft(e.target.value)} onBlur={saveTitle}
+                  onKeyDown={(e) => { e.key === "Enter" && saveTitle(); e.key === "Escape" && (setTitleDraft(lt.title), setEditTitle(false)); }}
+                  className={inputStyle + " flex-1 text-lg font-bold"} autoFocus />
+                <button onClick={saveTitle} className="px-2 py-1.5 rounded text-xs font-semibold text-white bg-brand-600">Zapisz</button>
+                <button onClick={() => { setTitleDraft(lt.title); setEditTitle(false); }} className="px-2 py-1.5 rounded text-xs text-slate-500 bg-white/5">✕</button>
+              </div>
+            ) : (
+              <h2 className="text-lg font-bold text-slate-50 leading-tight">
+                {lt.title}
+                {canEditTitleDesc && (
+                  <button type="button" onClick={() => { setTitleDraft(lt.title); setEditTitle(true); }} className="ml-2 text-slate-500 hover:text-slate-300 text-sm font-normal">Edytuj</button>
+                )}
+              </h2>
+            )}
             <p className="text-xs text-slate-500 mt-1">{ROLE_CFG[lt.createdBy]?.label} · {fmtDate(lt.createdAt)}</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-300 bg-white/5 flex-shrink-0">✕</button>
@@ -173,10 +243,40 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh })
           )}
 
           {/* Description */}
-          {lt.description && (
-            <Section label="Opis">
+          <Section label="Opis" action={canEditTitleDesc && !editDescription && <button type="button" onClick={() => { setDescriptionDraft(lt.description || ""); setEditDescription(true); }} className="text-[11px] text-brand-400 font-semibold hover:text-brand-200">Edytuj</button>}>
+            {canEditTitleDesc && editDescription ? (
+              <div className="space-y-2">
+                <textarea value={descriptionDraft} onChange={(e) => setDescriptionDraft(e.target.value)} rows={5}
+                  className={inputStyle + " w-full resize-y font-[inherit]"}
+                  placeholder="Opis zadania..." />
+                <div className="flex gap-2">
+                  <button onClick={saveDescription} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600">Zapisz</button>
+                  <button onClick={() => { setDescriptionDraft(lt.description || ""); setEditDescription(false); }} className="px-3 py-1.5 rounded-lg text-xs text-slate-500 bg-white/5">Anuluj</button>
+                </div>
+              </div>
+            ) : lt.description ? (
               <div className="text-sm text-slate-300 leading-relaxed p-3 rounded-lg whitespace-pre-wrap bg-white/[0.015] border border-white/[0.03]">
                 {lt.description}
+              </div>
+            ) : canEditTitleDesc ? (
+              <button type="button" onClick={() => { setDescriptionDraft(""); setEditDescription(true); }} className="text-sm text-slate-500 hover:text-slate-400 p-3 rounded-lg border border-dashed border-white/[0.06] w-full text-left">
+                + Dodaj opis
+              </button>
+            ) : (
+              <div className="text-sm text-slate-600 p-2">Brak opisu</div>
+            )}
+          </Section>
+
+          {/* Wymaga wyceny (admin/collaborator) */}
+          {canEdit && (
+            <Section label="Wymaga wyceny">
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setRequiresQuote(!lt.requiresQuote)}
+                  className="w-10 h-[22px] rounded-full relative cursor-pointer transition-colors flex-shrink-0"
+                  style={{ background: lt.requiresQuote ? "#3b82f6" : "rgba(255,255,255,0.1)" }}>
+                  <div className="w-[18px] h-[18px] rounded-full bg-white absolute top-[2px] transition-[left]" style={{ left: lt.requiresQuote ? 20 : 2 }} />
+                </button>
+                <span className="text-sm text-slate-400">{lt.requiresQuote ? "Tak" : "Nie"}</span>
               </div>
             </Section>
           )}
@@ -254,6 +354,16 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh })
               </div>
             ) : <div className="text-xs text-slate-600">Brak plików</div>}
           </Section>
+
+          {/* Usuń zadanie (admin i współpracownik) */}
+          {canDelete && (
+            <div className="pt-2 border-t border-white/5">
+              <button onClick={deleteTask} disabled={deleting}
+                className="w-full py-2.5 rounded-lg text-xs font-semibold text-red-400 border border-red-500/30 hover:bg-red-500/10 hover:border-red-500/50 transition-colors disabled:opacity-50">
+                {deleting ? "Usuwanie..." : "Usuń zadanie całkowicie"}
+              </button>
+            </div>
+          )}
 
           {/* Comments */}
           <Section label={`Komentarze (${lt.comments?.length || 0})`}>
