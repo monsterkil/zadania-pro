@@ -103,7 +103,12 @@ export async function PATCH(request, { params }) {
       }
     }
 
-    return NextResponse.json(updated);
+    // Ten sam kształt co GET (quoteAmount jako number lub null)
+    const out = {
+      ...updated,
+      quoteAmount: updated.quoteAmount != null ? parseFloat(updated.quoteAmount) : null,
+    };
+    return NextResponse.json(out);
   } catch (err) {
     if (err.message === "Unauthorized") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

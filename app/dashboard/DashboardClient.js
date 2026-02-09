@@ -123,9 +123,15 @@ export default function DashboardClient({ role }) {
     }
   };
 
+  const normalizeTask = (task) => ({
+    ...task,
+    quoteAmount: task.quoteAmount != null && task.quoteAmount !== "" ? parseFloat(task.quoteAmount) : null,
+  });
+
   const handleTaskUpdated = (updatedTask) => {
-    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
-    setSelectedTask(updatedTask);
+    const norm = normalizeTask(updatedTask);
+    setTasks((prev) => prev.map((t) => (t.id === norm.id ? norm : t)));
+    setSelectedTask(norm);
   };
 
   const handleTaskDeleted = (taskId) => {
@@ -186,7 +192,16 @@ export default function DashboardClient({ role }) {
 
   const canDrag = role === "admin" || role === "admin2" || role === "collaborator";
 
-  const grouped = Object.fromEntries(COLUMNS.map((col) => [col.id, tasks.filter(col.filter)]));
+  // Grupowanie: każdy task ze statusem "new" musi trafić do jednej z kolumn (Nowe / Wycenione / Wycena zaakceptowana)
+  const quotedIds = new Set(tasks.filter((t) => t.status === "new" && t.requiresQuote && (t.quoteAmount != null && t.quoteAmount !== "") && t.quoteStatus === "pending").map((t) => t.id));
+  const quoteAcceptedIds = new Set(tasks.filter((t) => t.status === "new" && t.quoteStatus === "accepted").map((t) => t.id));
+  const grouped = {
+    new: tasks.filter((t) => t.status === "new" && !quotedIds.has(t.id) && !quoteAcceptedIds.has(t.id)),
+    quoted: tasks.filter((t) => quotedIds.has(t.id)),
+    quote_accepted: tasks.filter((t) => quoteAcceptedIds.has(t.id)),
+    in_progress: tasks.filter((t) => t.status === "in_progress"),
+    done: tasks.filter((t) => t.status === "done"),
+  };
 
   const totalAccepted = tasks
     .filter((t) => t.requiresQuote && t.quoteStatus === "accepted")
