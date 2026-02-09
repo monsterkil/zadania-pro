@@ -1,0 +1,33 @@
+{
+  "name": "zadania-pro",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "node lib/seed.mjs"
+  },
+  "dependencies": {
+    "@vercel/blob": "^0.27.0",
+    "@vercel/postgres": "^0.10.0",
+    "bcryptjs": "^2.4.3",
+    "drizzle-orm": "^0.38.0",
+    "jsonwebtoken": "^9.0.2",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "uuid": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/uuid": "^10.0.0",
+    "autoprefixer": "^10.4.20",
+    "drizzle-kit": "^0.30.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}
