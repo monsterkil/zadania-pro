@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 const STATUS_CONFIG = {
   new: { label: "Nowe", color: "#f59e0b" },
   in_progress: { label: "W realizacji", color: "#3b82f6" },
-  done: { label: "Gotowe", color: "#10b981" },
+  done: { label: "Gotowe", color: "#047857" },
 };
 const QUOTE_STATUS = {
   pending: { label: "Oczekuje", color: "#f59e0b", icon: "⏳" },
@@ -218,24 +218,29 @@ export default function TaskDetail({ task, role, onClose, onUpdate, onRefresh, o
         </div>
 
         <div className="p-5 pt-4 space-y-5">
-          {/* Status */}
-          <div className="flex gap-1.5">
-            {Object.entries(STATUS_CONFIG).map(([k, c]) => {
-              const active = lt.status === k;
-              const blk = k === "in_progress" && blocked;
-              return (
-                <button key={k} onClick={() => !blk && changeStatus(k)}
-                  className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    border: active ? `2px solid ${c.color}` : "2px solid transparent",
-                    background: active ? `${c.color}18` : "rgba(255,255,255,0.025)",
-                    color: active ? c.color : "#64748b",
-                    opacity: blk ? 0.35 : 1,
-                    cursor: canEdit && !blk ? "pointer" : "default",
-                  }}>{c.label}</button>
-              );
-            })}
-          </div>
+          {/* Status — ręczna zmiana (dropdown, 3 opcje) */}
+          <Section label="Status">
+            <select
+              value={lt.status}
+              onChange={(e) => {
+                const s = e.target.value;
+                if (s === "in_progress" && blocked) return;
+                changeStatus(s);
+              }}
+              disabled={!canEdit}
+              className="w-full max-w-[220px] py-2 px-3 rounded-lg text-sm font-medium bg-white/[0.04] border border-white/[0.08] text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ color: STATUS_CONFIG[lt.status]?.color || "#94a3b8" }}
+            >
+              {Object.entries(STATUS_CONFIG).map(([k, c]) => {
+                const blk = k === "in_progress" && blocked;
+                return (
+                  <option key={k} value={k} disabled={blk} style={{ color: c.color }}>
+                    {c.label}
+                  </option>
+                );
+              })}
+            </select>
+          </Section>
 
           {blocked && (
             <div className="px-3 py-2 rounded-lg text-xs" style={{ background: "#f59e0b12", border: "1px solid #f59e0b25", color: "#fbbf24" }}>

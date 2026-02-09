@@ -45,7 +45,7 @@ const COLUMNS = [
   {
     id: "done",
     label: "Gotowe",
-    color: "#10b981",
+    color: "#047857",
     dropStatus: "done",
     filter: (t) => t.status === "done",
   },
